@@ -1,0 +1,2 @@
+2025/04/22 00:33:16 Logger configured
+2025/04/22 00:33:16 open config/config.env: no such file or directory
