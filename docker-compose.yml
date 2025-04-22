@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  task-manager-database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: mydbname
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U myuser -d mydbname" ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+  task-manager-database-service-grpc:
+    build: ./Task-Manager-Database
+    depends_on:
+      task-manager-database:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: [ "CMD-SHELL", "grpc_health_probe -addr=:8080" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+  task-manager-api-service-grpc:
+    build: ./Task-Manager-API
+    ports:
+      - "80:8081"
+    depends_on:
+      task-manager-database-service-grpc:
+        condition: service_started
+      task-manager-database:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
