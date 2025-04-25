@@ -13,15 +13,17 @@ func main() {
 	}
 	defer config.LogFile.Close()
 
+	log.Println("LOGGER CONFIGURED")
+
 	err = config.ConfigureDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = config.ConfigureRedis()
-	if err != nil {
-		log.Fatal(err)
-	}
+	//err = config.ConfigureRedis()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	internal.CreateServer()
 	err = internal.RunApp()

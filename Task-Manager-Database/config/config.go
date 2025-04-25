@@ -22,6 +22,12 @@ type ConfigDatabase struct {
 	Port     string `env:"DB_PORT" env-default:"5432"`
 }
 
+type ConfigRedis struct {
+	Addr     string `env:"REDIS_ADDRESS" env-default:"localhost:6379"`
+	Password string `env:"REDIS_PASSWORD" env-default:"myredispassword"`
+	DB       int    `env:"REDIS_DATABASE" env-default:"8"`
+}
+
 func ConfigureDatabase() error {
 	var configDb ConfigDatabase
 
@@ -76,7 +82,7 @@ func ConfigureLogger() error {
 
 	LogFile = logFile
 
-	log.SetOutput(LogFile)
+	log.SetOutput(os.Stdout)
 
 	log.Println("Logger configured")
 
@@ -84,7 +90,7 @@ func ConfigureLogger() error {
 }
 
 func ConfigureRedis() error {
-	var configRedisDb *redis.Options
+	var configRedisDb ConfigRedis
 
 	err := cleanenv.ReadConfig("config/config_redis.env", &configRedisDb)
 	if err != nil {
@@ -92,7 +98,11 @@ func ConfigureRedis() error {
 		return err
 	}
 
-	RedisDb = redis.NewClient(configRedisDb)
+	RedisDb = redis.NewClient(&redis.Options{
+		Addr:     configRedisDb.Addr,
+		Password: configRedisDb.Password,
+		DB:       configRedisDb.DB,
+	})
 
 	log.Println("Redis configured")
 
