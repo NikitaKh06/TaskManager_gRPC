@@ -13,10 +13,23 @@ services:
       interval: 3s
       timeout: 3s
       retries: 5
+  task-manager-cache-database:
+    image: redis
+    restart: always
+    environment:
+      REDIS_PASSWORD: myredispassword
+      REDIS_DATABASE: 8
+    healthcheck:
+      test: ["CMD", "redis-cli", "-h", "localhost", "PING"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
   task-manager-database-service-grpc:
     build: ./Task-Manager-Database
     depends_on:
       task-manager-database:
+        condition: service_healthy
+      task-manager-cache-database:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs
@@ -33,6 +46,8 @@ services:
       task-manager-database-service-grpc:
         condition: service_started
       task-manager-database:
+        condition: service_healthy
+      task-manager-cache-database:
         condition: service_healthy
     volumes:
       - ./logs:/app/logs

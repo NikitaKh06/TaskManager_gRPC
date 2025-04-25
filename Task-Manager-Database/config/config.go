@@ -3,11 +3,16 @@ package config
 import (
 	"context"
 	"fmt"
+	"github.com/go-redis/redis/v8"
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"os"
 )
+
+var LogFile *os.File
+var Db *pgx.Conn
+var RedisDb *redis.Client
 
 type ConfigDatabase struct {
 	User     string `env:"DB_USER" env-default:"mydefaultuser"`
@@ -17,12 +22,10 @@ type ConfigDatabase struct {
 	Port     string `env:"DB_PORT" env-default:"5432"`
 }
 
-var Db *pgx.Conn
-
 func ConfigureDatabase() error {
 	var configDb ConfigDatabase
 
-	err := cleanenv.ReadConfig("config/config.env", &configDb)
+	err := cleanenv.ReadConfig("config/config_db.env", &configDb)
 	if err != nil {
 		return err
 	}
@@ -57,8 +60,6 @@ func ConfigureDatabase() error {
 	return nil
 }
 
-var LogFile *os.File
-
 func ConfigureLogger() error {
 	logDirPath := "/app/logs"
 	logFilePath := logDirPath + "/task-manager-database-logs.txt"
@@ -78,6 +79,22 @@ func ConfigureLogger() error {
 	log.SetOutput(LogFile)
 
 	log.Println("Logger configured")
+
+	return nil
+}
+
+func ConfigureRedis() error {
+	var configRedisDb *redis.Options
+
+	err := cleanenv.ReadConfig("config/config_redis.env", &configRedisDb)
+	if err != nil {
+		log.Println("Error: " + err.Error())
+		return err
+	}
+
+	RedisDb = redis.NewClient(configRedisDb)
+
+	log.Println("Redis configured")
 
 	return nil
 }

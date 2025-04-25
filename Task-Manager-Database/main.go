@@ -18,6 +18,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = config.ConfigureRedis()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	internal.CreateServer()
 	err = internal.RunApp()
 	if err != nil {
